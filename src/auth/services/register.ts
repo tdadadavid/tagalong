@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { ConflictError, ControllerArgs, hashData } from "../../core";
-import { User } from "../../entities/user";
+import { User } from "../../users/entities";
 
 export class RegisterUser {
 

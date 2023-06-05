@@ -1,4 +1,4 @@
-import { User } from "../entities/user";
+import { User } from "../users/entities/user";
 import { RegisterUser } from "./services/register";
 import { Login } from "./services/sign.in";
 

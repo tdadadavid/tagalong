@@ -1,6 +1,6 @@
 import express, { Application } from "express";
-import { baseRouter } from "./app.module";
-import { config,crendentials } from "./core";
+
+import { baseRouter } from "./app.router";
 
 
 const app: Application = express();
@@ -9,6 +9,7 @@ const app: Application = express();
 app.use(express.json());
 // app.use(crendentials);
 app.disable('x-powered-by');
-app.use(config.baseApiPath, baseRouter);
+app.use('/api/v1', baseRouter);
+
 
 export default app;

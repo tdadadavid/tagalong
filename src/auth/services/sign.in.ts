@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { ControllerArgs,computeExpiryDate, UnAuthorizedError, generateToken,config } from "../../core";
-import { User } from "../../entities/user";
+import { User } from "../../users/entities";
 import { compare } from "bcrypt";
 
 export class Login {
@@ -10,8 +10,16 @@ export class Login {
 
     login = async ({ input }: ControllerArgs) => {
         const { email, password } = input;
+
+        // 
+        const filter: Record<(string|number|symbol), Array<Record<string, string>>> = {
+            [Op.or]: [
+                { email },
+                { phoneNumber: email }
+            ]
+        }
         
-        const user = await this.userModel.scope("withPassword").findOne({ where: Login.getFilter(email) });
+        const user = await this.userModel.scope("withPassword").findOne({ where: filter });
         if(!user) throw new UnAuthorizedError(`Invalid credentials`);
 
         const passwordIsSame = await compare(password, user.password!);
@@ -46,15 +54,4 @@ export class Login {
             }
         }
     }
-
-
-    private static getFilter = (email: string) => {
-        return {
-            [Op.or]: [
-                { email },
-                { phoneNumber: email }
-            ]
-        }
-    }
-
 }

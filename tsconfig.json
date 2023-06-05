@@ -9,7 +9,6 @@
       "dom.iterable",
       "scripthost"
     ],
-
     "sourceMap": false,
     "module": "commonjs",
     "rootDirs": ["./src", "./test"],

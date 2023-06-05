@@ -10,8 +10,8 @@ export const config = Object.freeze({
     //database
     pgPassword: process.env.PG_PASSWORD as string,
     pgUSER: process.env.PG_USER as string,
-    dbName: process.env.DATABASE as string,
-    dbHost: process.env.MYSQL_HOST as string,
+    dbName: process.env.PG_DATABASE as string,
+    dbHost: process.env.PG_HOST as string,
 
     //jwt
     accessTokenSecret: process.env.ACCESS_TOKEN_SECRET as string,

@@ -5,7 +5,7 @@ import {
     InferCreationAttributes,
     CreationOptional
 } from 'sequelize';
-import { sequelize } from '../core/config';
+import { sequelize } from '../../core/config';
 
 export class User extends Model<
     InferAttributes<User>, InferCreationAttributes<User>>{
