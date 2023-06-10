@@ -7,7 +7,7 @@ export interface ControllerArgs {
     query?: any;
     body?: any,
     files?: null | undefined;
-    user?: TokenUser  | undefined | null;
+    user?: string | TokenUser  | undefined | null;
     headers?: IncomingHttpHeaders,
 }
 

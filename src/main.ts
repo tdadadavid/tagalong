@@ -1,5 +1,5 @@
 import { initializeDbConnection } from './core';
-import { startApp } from './app.module';
+import startApp from './app';
 
 
 initializeDbConnection({force: false})

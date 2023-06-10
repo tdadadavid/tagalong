@@ -1,42 +1,99 @@
-import { Socket, Server} from "socket.io";
-import { createServer } from "node:http";
-import { AddressInfo } from "node:net";
-
-import app from "./app";
+import { verify } from "jsonwebtoken";
+import { Socket, Server } from "socket.io";
+import { Conversations, Messages} from "./conversations/entities";
+import { UnAuthorizedError } from "./core";
 import { config } from "./core";
+import { Op } from "sequelize";
+import { User } from "./users/entities";
 
-class HandleConnection {
 
-    public static onConnection = (wsServer: Server, socket: Socket) => {
-        wsServer.of('\\spaces:(+d)\/').on('connection', (socket: Socket) => {
-            
-        })
-        // socket.on('create:space', handleNewChat);
-        // socket.on('invite:user:space', inviteUserToSpace);
-        // socket.on('join:space:user', joinSpace);
-        // socket.on('remove:user:space', removeUserFromSpace);
-        // socket.on('space:chat', spaceMessages);
+interface CustomSocket extends Socket {
+    user?: { id: string, email: string }
+    token?: string;
+}
+
+const authenticateUser = (socket: CustomSocket, next: (err?: any) => void) => {
+    
+
+    const token: string | undefined = socket.handshake.headers.authorization?.split(' ').pop();
+    if(!token) {
+        return next(new UnAuthorizedError("Authentication failed 🔒🔒🔒🔒🔒🔒"));
     }
 
-}
-
-export default new HandleConnection
-
-
-
-export const startApp = () => {
-    const httpServer = createServer(app);
-
-    // create socket server
-    const wsServer = new Server(httpServer, {
-        transports: ['websocket']
-    });
-
-    // handle client connections.
-    wsServer.on('connection', (socket: Socket) => HandleConnection.onConnection(wsServer, socket))
+    try {
+        const decodedPayload = verify(token, config.accessTokenSecret) as any;
+        socket.user = decodedPayload.user;
+        next();
+    }catch (err) {
+        console.log(err);
+        next(new Error("Authentication failed 🔥🔥🔥🔥🔥🔥🔥🔥🔥"));
+    }
     
-    // start server on port.
-    httpServer.listen(config.port, () => {
-        console.log(`sever listening on ${(httpServer.address() as AddressInfo).port}`)
-    });
 }
+
+
+const setUpWebSocketServer = (server: Server) => {
+
+    server.use(authenticateUser).on('connection', async (socket: CustomSocket) => {
+
+        const user = socket.user!;
+            console.log('user....', user);
+            const conversations = await Conversations.findAll({
+                where: {
+                    [Op.or]: [
+                        { first_participant: user.id },
+                        { second_participant: user.id },
+                    ]
+                },
+                include: Messages,
+            });
+            const response = JSON.stringify(conversations);
+            socket.emit('conversations', response);
+
+        // new message for a conversation btw two users.
+        socket.on('new:msg', async (data: any)=> {
+
+            console.log(data);
+            const message = data.message;
+            const reciepient = data.recipient;
+
+
+            const sender = socket.user!;
+
+
+            let conversation = await Conversations.findOne({
+                where: {
+                    first_participant: sender.id,
+                    second_participant: reciepient
+                },
+            });
+
+            if(!conversation) {
+                conversation = await Conversations.create({
+                    first_participant: sender.id,
+                    second_participant: reciepient
+                })
+            }
+            
+            const newMessage = await Messages.create({
+                conversation_id: conversation.conversation_id,
+                message,
+                sender: sender.id,
+            });
+
+            const braodcastData = JSON.stringify({
+                message_id: message.id,
+                message,
+                sender,
+                sentAt: newMessage.sentAt,
+            });
+            socket.broadcast.emit('message', braodcastData);
+        })
+    })
+
+
+}
+
+//TODO: Refactor this!!!
+
+export default setUpWebSocketServer;

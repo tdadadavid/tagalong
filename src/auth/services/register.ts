@@ -1,4 +1,7 @@
 import { Op } from "sequelize";
+import { Socket } from "socket.io";
+
+
 import { ConflictError, ControllerArgs, hashData } from "../../core";
 import { User } from "../../users/entities";
 
@@ -30,7 +33,7 @@ export class RegisterUser {
         delete data.password
 
 
-        return {
+        return  {
             message: "Registration successful",
             data
         }

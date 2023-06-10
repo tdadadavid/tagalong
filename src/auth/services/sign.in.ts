@@ -28,7 +28,7 @@ export class Login {
         const accessToken: string = generateToken(
             { id: user.id, email: user.email },
             config.accessTokenSecret,
-            parseInt(config.accessTokenExpiresIn)
+            config.accessTokenExpiresIn
         );
         const accessTokenExpiry: Date = computeExpiryDate(parseInt(config.accessTokenExpiresIn));
 
@@ -36,15 +36,17 @@ export class Login {
         const refreshToken: string = generateToken(
             { id: user.id, email: user.email },
             config.refreshTokenSecret,
-            parseInt(config.refreshTokenExpiresIn)
+            config.refreshTokenExpiresIn
         );
 
         const refreshTokenExpiry: Date = computeExpiryDate(parseInt(config.refreshTokenExpiresIn));
+        const {dataValues} = user;
 
+        delete dataValues.password;
         return  {
             message: "Login successful",
             data: {
-                user,
+                user: dataValues,
                 tokens: {
                     accessToken,
                     accessTokenExpiry,
